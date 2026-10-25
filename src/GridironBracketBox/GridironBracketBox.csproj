@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Product>Gridiron Bracket Box</Product>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <!-- Packaging: applies only when publishing for a specific platform,
+       e.g. dotnet publish -c Release -r win-x64   (or -r linux-x64).
+       Produces ONE self-contained executable: no .NET install needed on the target machine. -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- Avalonia's native graphics libraries (Skia, HarfBuzz) go inside the single file too. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- No .pdb debug files next to the exe. -->
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <!-- Linux: don't require the system ICU library (the app uses no culture-specific formatting),
+       so the AppImage has one less thing that can be missing on someone's system. -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GridironBracketBox.Core\GridironBracketBox.Core.csproj" />
+  </ItemGroup>
+</Project>

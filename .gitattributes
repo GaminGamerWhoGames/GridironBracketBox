@@ -1,0 +1,5 @@
+# Files that run on Linux must keep Linux line endings (LF), even when checked out on Windows,
+# or bash fails with "$'\r': command not found".
+*.sh        text eol=lf
+AppRun      text eol=lf
+*.desktop   text eol=lf

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Gridiron Bracket Box
+Comment=NFL playoff brackets without the paper
+Exec=GridironBracketBox
+Icon=gridiron-bracket-box
+Terminal=false
+Categories=Game;SportsGame;

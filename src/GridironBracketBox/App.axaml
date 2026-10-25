@@ -1,0 +1,123 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="GridironBracketBox.App"
+             xmlns:vm="using:GridironBracketBox.ViewModels"
+             xmlns:views="using:GridironBracketBox.Views"
+             RequestedThemeVariant="Dark">
+             <!-- Always dark, regardless of the OS setting. -->
+
+    <!-- Which view shows each screen's view model. Explicit (no reflection) so the
+         single-file publish can't break it. -->
+    <Application.DataTemplates>
+        <DataTemplate DataType="vm:SetupViewModel">
+            <views:SetupView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PlayViewModel">
+            <views:PlayView />
+        </DataTemplate>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <!-- App palette. Change colors here. -->
+        <SolidColorBrush x:Key="AppBackground" Color="#0E131B" />
+        <SolidColorBrush x:Key="CardBackground" Color="#161D29" />
+        <SolidColorBrush x:Key="CardBorder" Color="#263145" />
+        <SolidColorBrush x:Key="RowBackground" Color="#1C2534" />
+        <SolidColorBrush x:Key="RowHover" Color="#243046" />
+        <SolidColorBrush x:Key="MutedText" Color="#8A96AB" />
+        <SolidColorBrush x:Key="AfcColor" Color="#E5484D" />
+        <SolidColorBrush x:Key="NfcColor" Color="#3E8EF7" />
+        <SolidColorBrush x:Key="ByeColor" Color="#F2B33D" />
+        <SolidColorBrush x:Key="WinnerColor" Color="#22C55E" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Dark" Accent="#16A34A" RegionColor="#0E131B" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
+
+        <!-- Rounded panel used for every section of the UI. -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource CardBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <Style Selector="TextBlock.h1">
+            <Setter Property="FontSize" Value="26" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="TextBlock.h2">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="{StaticResource MutedText}" />
+        </Style>
+
+        <!-- Small colored conference / bye tags. -->
+        <Style Selector="Border.tag">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="6,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.tag > TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Border.tag.conf">
+            <Setter Property="Background" Value="{StaticResource NfcColor}" />
+        </Style>
+        <Style Selector="Border.tag.conf.afc">
+            <Setter Property="Background" Value="{StaticResource AfcColor}" />
+        </Style>
+        <Style Selector="Border.tag.bye">
+            <Setter Property="Background" Value="{StaticResource ByeColor}" />
+        </Style>
+        <Style Selector="Border.tag.bye > TextBlock">
+            <Setter Property="Foreground" Value="#1A1A1A" />
+        </Style>
+
+        <!-- Pill-style single-choice list (playoff size picker). -->
+        <Style Selector="ListBox.segmented">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBox.segmented ListBoxItem">
+            <Setter Property="Background" Value="{StaticResource RowBackground}" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="16,6" />
+            <Setter Property="MinWidth" Value="52" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="ListBox.segmented ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#16A34A" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- Flat list-row buttons (team picker, seed list). -->
+        <Style Selector="Button.row">
+            <Setter Property="Background" Value="{StaticResource RowBackground}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,6" />
+        </Style>
+        <Style Selector="Button.row:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHover}" />
+        </Style>
+
+        <!-- Tiny icon buttons (▲ ▼ ✕). -->
+        <Style Selector="Button.icon">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="MinWidth" Value="22" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+    </Application.Styles>
+</Application>

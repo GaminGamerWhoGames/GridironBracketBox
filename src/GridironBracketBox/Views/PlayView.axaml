@@ -1,0 +1,193 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GridironBracketBox.ViewModels"
+             x:Class="GridironBracketBox.Views.PlayView"
+             x:DataType="vm:PlayViewModel">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
+    </UserControl.KeyBindings>
+
+    <UserControl.Styles>
+        <!-- A game card. -->
+        <Style Selector="Border.game">
+            <Setter Property="Background" Value="{StaticResource RowBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style Selector="Border.game.bye">
+            <Setter Property="BorderBrush" Value="{StaticResource ByeColor}" />
+            <Setter Property="Opacity" Value="0.85" />
+        </Style>
+        <Style Selector="Border.game.title">
+            <Setter Property="BorderBrush" Value="{StaticResource ByeColor}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!-- A clickable team line inside a card. -->
+        <Style Selector="Button.team">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="6,5" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+        <Style Selector="Button.team.winner /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1E4D2E" />
+        </Style>
+        <Style Selector="Button.team.winner TextBlock.abbr">
+            <Setter Property="Foreground" Value="{StaticResource WinnerColor}" />
+        </Style>
+        <Style Selector="Button.team.loser">
+            <Setter Property="Opacity" Value="0.4" />
+        </Style>
+        <!-- Disabled = TBD or bye line; keep it readable rather than Fluent's grey-out. -->
+        <Style Selector="Button.team:disabled /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.team.empty">
+            <Setter Property="Opacity" Value="0.4" />
+        </Style>
+
+        <!-- Scroll bars set by styles (not attributes) so the .fit style below can override them;
+             a value set directly on the control would always win over a style. -->
+        <Style Selector="ScrollViewer.bracket">
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        </Style>
+        <!-- Fit mode: no scrolling, so the Viewbox inside is forced to shrink the bracket to the viewport. -->
+        <Style Selector="ScrollViewer.bracket.fit">
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+        </Style>
+
+        <!-- Thin conference color bar at the left of each team line. -->
+        <Style Selector="Border.confbar">
+            <Setter Property="Width" Value="3" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="{StaticResource NfcColor}" />
+        </Style>
+        <Style Selector="Border.confbar.afc">
+            <Setter Property="Background" Value="{StaticResource AfcColor}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12" Margin="20">
+
+        <!-- Top bar -->
+        <DockPanel Grid.Row="0">
+            <Button DockPanel.Dock="Left" Content="← Setup" Command="{Binding BackToSetupCommand}"
+                    VerticalAlignment="Center" Margin="0,0,16,0" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Content="Open…" Command="{Binding OpenCommand}" ToolTip.Tip="Open a saved bracket (Ctrl+O)" />
+                <Button Content="Save…" Command="{Binding SaveCommand}" ToolTip.Tip="Save this bracket to a file (Ctrl+S)" />
+                <Border Width="1" Background="{StaticResource CardBorder}" Margin="4,4" />
+                <ToggleButton Content="Fit to window" IsChecked="{Binding FitToWindow}"
+                              ToolTip.Tip="Shrink the bracket to fit, or show it full size with scroll bars" />
+                <Button Content="↶ Undo" Command="{Binding UndoCommand}" ToolTip.Tip="Undo last change (Ctrl+Z)" />
+                <Button Content="Reset bracket" Command="{Binding ResetCommand}" ToolTip.Tip="Clear all picks (can be undone)" />
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Classes="h1" Text="{Binding Title}" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Classes="muted" Text="{Binding Progress}" />
+                    <TextBlock Classes="muted" Text="{Binding FileName, StringFormat='File: {0}'}"
+                               IsVisible="{Binding FileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Fixed-height strip: help + notice, with the champion banner drawn on top when there is one.
+             Fixed height means the bracket below never jumps under the mouse. -->
+        <Grid Grid.Row="1" Height="52">
+            <StackPanel Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Notice}" Foreground="{StaticResource ByeColor}" MinHeight="20" />
+                <TextBlock Classes="muted" Text="Click a team to pick the winner. Click the other team to change it, or the winner again to clear it." />
+            </StackPanel>
+            <Border Background="{StaticResource ByeColor}" CornerRadius="10"
+                    IsVisible="{Binding ChampionText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🏆 CHAMPION" FontWeight="Black" FontSize="20" Foreground="#1A1A1A"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ChampionText}" FontWeight="Bold" FontSize="20" Foreground="#1A1A1A"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- The bracket -->
+        <Border Grid.Row="2" Classes="card" Padding="12">
+            <ScrollViewer Classes="bracket" Classes.fit="{Binding FitToWindow}">
+              <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                <ItemsControl ItemsSource="{Binding Columns}" HorizontalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="12" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RoundColumnViewModel">
+                            <StackPanel Width="200">
+                                <TextBlock Classes="h2" Text="{Binding Title}" Height="44" VerticalAlignment="Bottom"
+                                           TextWrapping="Wrap" TextAlignment="Center" />
+                                <TextBlock Classes="muted" Text="{Binding SectionLabel}" HorizontalAlignment="Center"
+                                           FontSize="12" Margin="0,0,0,6" />
+                                <ItemsControl ItemsSource="{Binding Cards}" Height="{Binding Height}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="1" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:GameCardViewModel">
+                                            <Border Classes="game" Classes.bye="{Binding IsBye}"
+                                                    Classes.title="{Binding IsTitleGame}">
+                                                <StackPanel>
+                                                    <ContentControl Content="{Binding Top}" />
+                                                    <Border Height="1" Background="{StaticResource CardBorder}" Margin="6,0"
+                                                            IsVisible="{Binding !IsBye}" />
+                                                    <ContentControl Content="{Binding Bottom}" IsVisible="{Binding !IsBye}" />
+                                                    <TextBlock Text="BYE: advances to next round" FontSize="11"
+                                                               Foreground="{StaticResource ByeColor}" Margin="12,0,0,4"
+                                                               IsVisible="{Binding IsBye}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Viewbox>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+
+    <!-- How a single team line looks (used by the ContentControls above). -->
+    <UserControl.DataTemplates>
+        <DataTemplate DataType="vm:TeamSlotViewModel">
+            <Button Classes="team" Classes.winner="{Binding IsWinner}" Classes.loser="{Binding IsLoser}"
+                    Classes.empty="{Binding IsEmpty}"
+                    Command="{Binding PickCommand}" ToolTip.Tip="{Binding Tip}">
+                <Grid ColumnDefinitions="3,24,46,*,Auto" ColumnSpacing="6">
+                    <Border Classes="confbar" Classes.afc="{Binding IsAfc}" IsVisible="{Binding !IsEmpty}" />
+                    <TextBlock Grid.Column="1" Classes="muted" Text="{Binding SeedText}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Classes="abbr" Text="{Binding Abbr}" FontWeight="Bold"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="3" Classes="muted" Text="{Binding Name}" FontSize="12"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="4" Text="✓" FontWeight="Bold" Foreground="{StaticResource WinnerColor}"
+                               IsVisible="{Binding IsWinner}" VerticalAlignment="Center" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+    </UserControl.DataTemplates>
+</UserControl>

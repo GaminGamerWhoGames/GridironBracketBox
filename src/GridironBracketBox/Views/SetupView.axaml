@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GridironBracketBox.ViewModels"
+             xmlns:views="using:GridironBracketBox.Views"
+             x:Class="GridironBracketBox.Views.SetupView"
+             x:DataType="vm:SetupViewModel">
+
+    <UserControl.Styles>
+        <!-- The spot a dragged row came from: a faded placeholder showing where it will drop.
+             (The floating card that follows the mouse is the "Ghost" at the bottom of this file.) -->
+        <Style Selector="Border.slot.dragging">
+            <Setter Property="BorderBrush" Value="#16A34A" />
+            <Setter Property="Opacity" Value="0.3" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Panel stacks the screen and a see-through overlay (for the drag "ghost") on top of each other. -->
+    <Panel>
+    <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="14" Margin="20">
+
+        <!-- Header -->
+        <DockPanel Grid.Row="0">
+            <Button DockPanel.Dock="Right" VerticalAlignment="Center" Content="Open saved bracket…"
+                    Command="{Binding OpenCommand}" ToolTip.Tip="Open a bracket you saved earlier (Ctrl+O)" />
+            <StackPanel Spacing="2">
+                <TextBlock Classes="h1" Text="Gridiron Bracket Box" />
+                <TextBlock Classes="muted" Text="Set up your playoff bracket, then click Start." />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Size, mode, bye summary -->
+        <Border Grid.Row="1" Classes="card">
+            <WrapPanel ItemSpacing="40" LineSpacing="12">
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="h2" Text="Playoff size" />
+                    <ListBox Classes="segmented" ItemsSource="{Binding Sizes}" SelectedItem="{Binding SelectedSize}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="4" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="h2" Text="Bracket mode" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <RadioButton GroupName="Mode" IsChecked="{Binding IsConferenceMode}"
+                                     Content="Conference (AFC vs NFC)" />
+                        <RadioButton GroupName="Mode" IsChecked="{Binding IsOpenMode}"
+                                     Content="Open (one bracket)" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="h2" Text="Byes" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" Height="32">
+                        <Border Classes="tag bye">
+                            <TextBlock Text="BYE" />
+                        </Border>
+                        <TextBlock Text="{Binding ByeSummary}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <!-- Team picker (left) and seed lists (right) -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="14">
+
+            <Border Grid.Column="0" Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="4">
+                    <TextBlock Classes="h2" Text="1. Choose teams" />
+                    <TextBlock Grid.Row="1" Classes="muted" Text="Click a team to add it to the next open seed, or drag it to a specific seed." />
+                    <ScrollViewer Grid.Row="2" Margin="0,8,0,0">
+                        <ItemsControl ItemsSource="{Binding Columns}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TeamColumnViewModel">
+                                    <StackPanel Margin="0,0,10,0">
+                                        <Border Classes="tag conf" Classes.afc="{Binding IsAfc}"
+                                                HorizontalAlignment="Left" Margin="0,0,0,6">
+                                            <TextBlock Text="{Binding Title}" />
+                                        </Border>
+                                        <ItemsControl ItemsSource="{Binding Teams}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:TeamOptionViewModel">
+                                                    <Button Classes="row" Margin="0,2"
+                                                            Command="{Binding AddCommand}"
+                                                            IsEnabled="{Binding IsAvailable}">
+                                                        <Grid ColumnDefinitions="44,*,Auto">
+                                                            <TextBlock Text="{Binding Team.Abbr}" FontWeight="Bold" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding Team.Name}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Grid.Column="2" Text="✓" FontWeight="Bold"
+                                                                       Foreground="{StaticResource WinnerColor}"
+                                                                       IsVisible="{Binding IsPicked}" />
+                                                        </Grid>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Classes="card" x:Name="SeedsCard">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="4">
+                    <TextBlock Classes="h2" Text="2. Order seeds" />
+                    <TextBlock Grid.Row="1" Classes="muted" Text="Top of the list is seed 1. Drag rows (or use ▲ ▼) to reorder, ✕ to remove." />
+                    <ScrollViewer Grid.Row="2" Margin="0,8,0,0">
+                        <ItemsControl ItemsSource="{Binding Groups}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:SeedGroupViewModel">
+                                    <StackPanel Margin="0,0,10,0">
+                                        <DockPanel Margin="0,0,0,6">
+                                            <TextBlock DockPanel.Dock="Right" Classes="muted" Text="{Binding CountText}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <ItemsControl Classes="slots" ItemsSource="{Binding Slots}"
+                                                      views:AnimateReorder.IsEnabled="True">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:SeedSlotViewModel">
+                                                    <!-- Whole row is draggable (code-behind); Background makes empty space grabbable too. -->
+                                                    <Border Classes="slot" Classes.dragging="{Binding IsDragging}"
+                                                            Background="{StaticResource RowBackground}" CornerRadius="6"
+                                                            BorderBrush="Transparent" BorderThickness="2"
+                                                            Padding="4,0" Margin="0,2" Cursor="Hand"
+                                                            ToolTip.Tip="{Binding Team.Name}">
+                                                        <Grid ColumnDefinitions="12,24,Auto,40,*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                                                            <TextBlock Classes="muted" Text="≡" FontSize="16" VerticalAlignment="Center"
+                                                                       ToolTip.Tip="Drag to reseed" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding Seed}" FontWeight="Bold" FontSize="15"
+                                                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                                            <Border Grid.Column="2" Classes="tag conf" Classes.afc="{Binding IsAfc}"
+                                                                    IsVisible="{Binding ShowConference}">
+                                                                <TextBlock Text="{Binding Team.Conference}" />
+                                                            </Border>
+                                                            <TextBlock Grid.Column="3" Text="{Binding Team.Abbr}" FontWeight="Bold"
+                                                                       VerticalAlignment="Center" />
+                                                            <TextBlock Grid.Column="4" Classes="muted" Text="{Binding Team.Name}"
+                                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                            <Border Grid.Column="5" Classes="tag bye" IsVisible="{Binding HasBye}">
+                                                                <TextBlock Text="BYE" />
+                                                            </Border>
+                                                            <Button Grid.Column="6" Classes="icon" Content="▲"
+                                                                    Command="{Binding MoveUpCommand}" ToolTip.Tip="Move up a seed" />
+                                                            <Button Grid.Column="7" Classes="icon" Content="▼"
+                                                                    Command="{Binding MoveDownCommand}" ToolTip.Tip="Move down a seed" />
+                                                            <Button Grid.Column="8" Classes="icon" Content="✕"
+                                                                    Command="{Binding RemoveCommand}" ToolTip.Tip="Remove team" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status + actions -->
+        <Border Grid.Row="3" Classes="card" Padding="12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                    <Button Content="🎲 Randomize" Command="{Binding RandomizeCommand}"
+                            ToolTip.Tip="Replace all picks with random teams and random seeds" />
+                    <Button Content="Quick fill" Command="{Binding QuickFillCommand}"
+                            ToolTip.Tip="Fill empty seeds with teams in list order" />
+                    <Button Content="Shuffle seeds" Command="{Binding ShuffleCommand}" />
+                    <Button Content="Clear all" Command="{Binding ClearAllCommand}" />
+                    <Button Classes="accent" Content="Start Bracket →" FontWeight="Bold"
+                            Command="{Binding StartCommand}" />
+                </StackPanel>
+                <TextBlock Text="{Binding Status}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="4,0,12,0" />
+            </DockPanel>
+        </Border>
+    </Grid>
+
+    <!-- Drag overlay, drawn on top of everything. IsHitTestVisible="False" so it never blocks
+         the mouse from seeing what's underneath. -->
+    <Canvas IsHitTestVisible="False">
+        <!-- Green line showing where a team dragged from the picker will be inserted. -->
+        <Border x:Name="DropLine" IsVisible="False" Height="4" CornerRadius="2" Background="#22C55E" />
+
+        <!-- The "lifted" card that follows the mouse: slightly tilted, with a drop shadow. -->
+        <Border x:Name="Ghost" IsVisible="False" Background="{StaticResource RowHover}"
+                BorderBrush="#16A34A" BorderThickness="2" CornerRadius="8" Padding="8,6"
+                BoxShadow="0 10 28 0 #B0000000" RenderTransform="rotate(-1.5deg)">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <!-- Seed this team would land at (or + / FULL for picker drags). -->
+                <Border Background="#16A34A" CornerRadius="10" MinWidth="30" Padding="7,1">
+                    <TextBlock x:Name="GhostSeed" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" />
+                </Border>
+                <TextBlock x:Name="GhostAbbr" FontWeight="Bold" VerticalAlignment="Center" />
+                <TextBlock x:Name="GhostName" Classes="muted" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Canvas>
+    </Panel>
+</UserControl>

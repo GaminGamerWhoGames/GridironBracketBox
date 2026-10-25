@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GridironBracketBox.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="GridironBracketBox.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/app.ico"
+        Width="1280" Height="820" MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBackground}"
+        Title="Gridiron Bracket Box">
+
+    <!-- Shortcuts that work on any screen. -->
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCommand}" />
+    </Window.KeyBindings>
+
+    <Window.Styles>
+        <Style Selector="Border.toast">
+            <Setter Property="Background" Value="{StaticResource WinnerColor}" />
+        </Style>
+        <Style Selector="Border.toast.error">
+            <Setter Property="Background" Value="{StaticResource AfcColor}" />
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <!-- Shows the current screen; App.axaml's DataTemplates pick the view. -->
+        <ContentControl Content="{Binding CurrentPage}" />
+
+        <!-- Pop-up message ("Saved …" / errors), floating above the bottom of the window. -->
+        <Border Classes="toast" Classes.error="{Binding ToastIsError}"
+                IsVisible="{Binding Toast, Converter={x:Static ObjectConverters.IsNotNull}}"
+                HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="20,0,20,96"
+                CornerRadius="8" Padding="18,10" MaxWidth="800"
+                BoxShadow="0 6 20 0 #A0000000">
+            <TextBlock Text="{Binding Toast}" Foreground="White" FontWeight="SemiBold" TextWrapping="Wrap" />
+        </Border>
+    </Panel>
+
+</Window>

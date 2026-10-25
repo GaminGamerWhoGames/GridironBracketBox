@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GridironBracketBox.Core/GridironBracketBox.Core.csproj" />
+    <Project Path="src/GridironBracketBox/GridironBracketBox.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GridironBracketBox.Tests/GridironBracketBox.Tests.csproj" />
+  </Folder>
+</Solution>
